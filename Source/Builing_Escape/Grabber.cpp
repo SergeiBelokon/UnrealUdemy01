@@ -32,8 +32,19 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+    FVector PlayerViewPointLocation;
+    FRotator PlayerViewPointRotation;
+    GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
+        OUT PlayerViewPointLocation,
+        OUT PlayerViewPointRotation
+    );
+
+    FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
     
-    
+    if (PhysicsHandle->GrabbedComponent)
+    {
+        PhysicsHandle->SetTargetLocation(LineTraceEnd);
+    }
     
 }
 
@@ -68,12 +79,25 @@ void UGrabber::FindInputComponent()
 void UGrabber::Grab()
 {
     UE_LOG(LogTemp, Warning, TEXT("Grag func is called"));
-    GetFirstPhysicsBodyInReach();
+    auto HitResult = GetFirstPhysicsBodyInReach();
+    auto ComponentToGrab = HitResult.GetComponent();
+    auto ActorHit = HitResult.GetActor();
+    
+    if (ActorHit)
+    {
+        PhysicsHandle->GrabComponentAtLocationWithRotation(
+            ComponentToGrab,
+            NAME_None,
+            ActorHit->GetActorLocation(),
+            ActorHit->GetActorRotation()
+       );
+    }
 }
 
 void UGrabber::Release()
 {
     UE_LOG(LogTemp, Warning, TEXT("Release func is called"));
+    PhysicsHandle->ReleaseComponent();
 }
 
 const FHitResult UGrabber::GetFirstPhysicsBodyInReach()
@@ -120,5 +144,5 @@ const FHitResult UGrabber::GetFirstPhysicsBodyInReach()
         FString HitObjectName = HitActor->GetName();
         UE_LOG(LogTemp, Warning, TEXT("We hit a %s"), *HitObjectName);
     }
-    return FHitResult();
+    return Hit;
 }
