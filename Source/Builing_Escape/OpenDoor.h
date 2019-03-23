@@ -7,6 +7,7 @@
 #include "Engine/TriggerVolume.h"
 #include "OpenDoor.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDoorEvent);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BUILING_ESCAPE_API UOpenDoor : public UActorComponent
@@ -18,29 +19,26 @@ public:
 	UOpenDoor();
 
 protected:
-    void OpenDoor();
-    void CloseDoor();
-    
     // Called when the game starts
 	virtual void BeginPlay() override;
 
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+    
+    UPROPERTY(BluePrintAssignable)
+    FDoorEvent OnOpen;
+    
+    UPROPERTY(BluePrintAssignable)
+    FDoorEvent OnClose;
 
+    
 private:
     UPROPERTY(EditAnywhere)
-    float OpenAngle = 90.f;
-
-    UPROPERTY(EditAnywhere)
     ATriggerVolume* PresurePlate;
-
-    UPROPERTY(EditAnywhere)
-    float DoorOpenDelay = 1.f;
-
-    float LastDoorOpenTime;
-
+    
+    float TriggerMass = 30.f;
     float GetTotalMassActorOnPlate();
-//    AActor* ActorThatOpens;
+    
     AActor* Owner;
 };
